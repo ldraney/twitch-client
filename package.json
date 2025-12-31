@@ -1,0 +1,14 @@
+{
+  "name": "twitch-client",
+  "version": "1.0.0",
+  "description": "Twitch API test client for learning OAuth and endpoints",
+  "type": "module",
+  "scripts": {
+    "auth": "node auth.js",
+    "test-api": "node test-api.js",
+    "server": "node auth-server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  }
+}
