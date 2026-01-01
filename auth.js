@@ -23,10 +23,12 @@ const CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 const CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 const REDIRECT_URI = 'http://localhost:3000/callback';
 
-// Scopes needed for affiliate tracking
+// Scopes needed for affiliate tracking + chat overlay
 const SCOPES = [
-  'moderator:read:followers',  // Read follower list/count
+  'moderator:read:followers',   // Read follower list/count
   'channel:read:subscriptions', // Read sub count (future)
+  'chat:read',                  // Read chat messages (IRC)
+  'chat:edit',                  // Send chat messages (IRC)
 ].join(' ');
 
 async function getClientCredentialsToken() {
