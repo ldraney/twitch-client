@@ -1,5 +1,7 @@
 # twitch-client
 
+[![PyPI](https://img.shields.io/pypi/v/twitch-client)](https://pypi.org/project/twitch-client/)
+
 Twitch OAuth client with token management and authenticated HTTP requests for the Twitch Helix API.
 
 ## Installation
@@ -8,18 +10,37 @@ Twitch OAuth client with token management and authenticated HTTP requests for th
 pip install twitch-client
 ```
 
-## Usage
+## Credentials Setup
 
-### Environment Setup
+### 1. Get Client ID & Secret
 
-Create a `.env` file or set environment variables:
+1. Go to [Twitch Developer Console](https://dev.twitch.tv/console/apps)
+2. Create or select your application
+3. Copy the **Client ID** and generate a **Client Secret**
+
+### 2. Get Access & Refresh Tokens
+
+Use the [Twitch CLI](https://dev.twitch.tv/docs/cli/) or an OAuth flow to get tokens:
 
 ```bash
+twitch token -u -s "chat:read chat:edit channel:manage:broadcast"
+```
+
+### 3. Create `.env` File
+
+Create `~/.twitch-secrets/.env` (default location):
+
+```bash
+mkdir -p ~/.twitch-secrets
+cat > ~/.twitch-secrets/.env << 'EOF'
 TWITCH_CLIENT_ID=your_client_id
 TWITCH_CLIENT_SECRET=your_client_secret
 TWITCH_ACCESS_TOKEN=your_access_token
 TWITCH_REFRESH_TOKEN=your_refresh_token
+EOF
 ```
+
+Or set the `TWITCH_ENV_FILE` environment variable to use a custom path.
 
 ### Basic Usage
 
