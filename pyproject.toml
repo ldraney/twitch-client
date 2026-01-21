@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "twitch-client"
-version = "0.1.0"
+version = "0.1.1"
 description = "Twitch OAuth client with token management and authenticated HTTP requests"
 authors = ["ldraney"]
 readme = "README.md"
