@@ -38,6 +38,13 @@ class TokenInfo(BaseModel):
     scopes: list[str] = Field(default_factory=list)
 
 
+class AppTokenInfo(BaseModel):
+    """App access token with metadata (no refresh token)."""
+
+    access_token: str
+    expires_at: datetime | None = None
+
+
 class TwitchAuth:
     """Manages Twitch OAuth tokens with automatic refresh."""
 
@@ -58,6 +65,7 @@ class TwitchAuth:
         self.credentials = credentials or TwitchCredentials()
         self.on_token_refresh = on_token_refresh
         self._token_info: TokenInfo | None = None
+        self._app_token_info: AppTokenInfo | None = None
         self._http_client: httpx.AsyncClient | None = None
 
     @property
@@ -166,6 +174,45 @@ class TwitchAuth:
         """Get current token info, initializing if needed."""
         await self.get_token()  # Ensures token is initialized and valid
         return self._token_info
+
+    async def get_app_token(self) -> str:
+        """Get app access token using client credentials flow.
+
+        App tokens are used for endpoints that require app-level access
+        rather than user-level access (e.g., conduit management).
+
+        Returns:
+            Valid app access token string.
+
+        Raises:
+            TwitchAuthError: If token cannot be obtained.
+        """
+        # Check if we have a valid cached app token
+        if self._app_token_info and self._app_token_info.expires_at:
+            if datetime.utcnow() < self._app_token_info.expires_at - timedelta(minutes=5):
+                return self._app_token_info.access_token
+
+        # Request new app token using client credentials flow
+        client = await self._get_http_client()
+        response = await client.post(
+            self.TOKEN_URL,
+            data={
+                "grant_type": "client_credentials",
+                "client_id": self.credentials.client_id,
+                "client_secret": self.credentials.client_secret,
+            },
+        )
+
+        if response.status_code != 200:
+            raise TwitchAuthError(f"Failed to get app token: {response.text}")
+
+        data = response.json()
+        self._app_token_info = AppTokenInfo(
+            access_token=data["access_token"],
+            expires_at=datetime.utcnow() + timedelta(seconds=data.get("expires_in", 3600)),
+        )
+
+        return self._app_token_info.access_token
 
     async def __aenter__(self) -> "TwitchAuth":
         """Async context manager entry."""

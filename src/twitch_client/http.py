@@ -46,6 +46,15 @@ class TwitchHTTPClient:
             "Content-Type": "application/json",
         }
 
+    async def _get_app_headers(self) -> dict[str, str]:
+        """Get headers with app access token."""
+        token = await self.auth.get_app_token()
+        return {
+            "Authorization": f"Bearer {token}",
+            "Client-Id": self.auth.client_id,
+            "Content-Type": "application/json",
+        }
+
     def _handle_error_response(self, response: httpx.Response) -> None:
         """Handle error responses from the API."""
         if response.status_code == 429:
@@ -201,6 +210,121 @@ class TwitchHTTPClient:
         """
         client = await self._get_client()
         headers = await self._get_headers()
+
+        if params:
+            params = {k: v for k, v in params.items() if v is not None}
+
+        response = await client.delete(endpoint, headers=headers, params=params)
+        self._handle_error_response(response)
+
+        if response.status_code == 204 or not response.content:
+            return {}
+        return response.json()
+
+    # App-token methods for endpoints requiring app access tokens
+
+    async def get_app(
+        self,
+        endpoint: str,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Make GET request with app access token.
+
+        Args:
+            endpoint: API endpoint path (e.g., "/eventsub/conduits").
+            params: Query parameters.
+
+        Returns:
+            JSON response as dict.
+        """
+        client = await self._get_client()
+        headers = await self._get_app_headers()
+
+        if params:
+            params = {k: v for k, v in params.items() if v is not None}
+
+        response = await client.get(endpoint, headers=headers, params=params)
+        self._handle_error_response(response)
+        return response.json()
+
+    async def post_app(
+        self,
+        endpoint: str,
+        data: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Make POST request with app access token.
+
+        Args:
+            endpoint: API endpoint path.
+            data: JSON body data.
+            params: Query parameters.
+
+        Returns:
+            JSON response as dict.
+        """
+        client = await self._get_client()
+        headers = await self._get_app_headers()
+
+        if params:
+            params = {k: v for k, v in params.items() if v is not None}
+        if data:
+            data = {k: v for k, v in data.items() if v is not None}
+
+        response = await client.post(endpoint, headers=headers, json=data, params=params)
+        self._handle_error_response(response)
+
+        if response.status_code == 204 or not response.content:
+            return {}
+        return response.json()
+
+    async def patch_app(
+        self,
+        endpoint: str,
+        data: dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Make PATCH request with app access token.
+
+        Args:
+            endpoint: API endpoint path.
+            data: JSON body data.
+            params: Query parameters.
+
+        Returns:
+            JSON response as dict.
+        """
+        client = await self._get_client()
+        headers = await self._get_app_headers()
+
+        if params:
+            params = {k: v for k, v in params.items() if v is not None}
+        if data:
+            data = {k: v for k, v in data.items() if v is not None}
+
+        response = await client.patch(endpoint, headers=headers, json=data, params=params)
+        self._handle_error_response(response)
+
+        if response.status_code == 204 or not response.content:
+            return {}
+        return response.json()
+
+    async def delete_app(
+        self,
+        endpoint: str,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Make DELETE request with app access token.
+
+        Args:
+            endpoint: API endpoint path.
+            params: Query parameters.
+
+        Returns:
+            JSON response as dict (usually empty for DELETE).
+        """
+        client = await self._get_client()
+        headers = await self._get_app_headers()
 
         if params:
             params = {k: v for k, v in params.items() if v is not None}
